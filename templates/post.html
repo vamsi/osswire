@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }} - OSSWire{% endblock %}
+
+{% block content %}
+<div class="post-item">
+    <div class="post-header">
+        <div class="vote-buttons">
+            {% if current_user %}
+                <form method="POST" action="/vote/{{ post.id }}" style="display: inline;">
+                    <input type="hidden" name="vote_type" value="1">
+                    <button type="submit" class="vote-btn">▲</button>
+                </form>
+            {% endif %}
+            <span class="points">{{ post.points }} points</span>
+            {% if current_user %}
+                <form method="POST" action="/vote/{{ post.id }}" style="display: inline;">
+                    <input type="hidden" name="vote_type" value="-1">
+                    <button type="submit" class="vote-btn">▼</button>
+                </form>
+            {% endif %}
+        </div>
+        
+        <div class="post-title">
+            {% if post.url %}
+                <a href="{{ post.url }}" target="_blank" rel="noopener noreferrer">{{ post.title }}</a>
+            {% else %}
+                {{ post.title }}
+            {% endif %}
+            <span class="license-badge">{{ post.license.value }}</span>
+        </div>
+    </div>
+    
+    <div class="post-meta">
+        by {{ post.author.username }} • {{ post.created_at.strftime('%Y-%m-%d %H:%M') }}
+    </div>
+    
+    {% if post.content %}
+    <div class="post-content">
+        {{ post.content|safe }}
+    </div>
+    {% endif %}
+</div>
+
+<div class="comments-section">
+    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0;">Comments</h2>
+        <span style="color: var(--text-tertiary); font-size: 0.875rem;">({{ post.comments|length }})</span>
+    </div>
+    
+    {% if current_user %}
+    <div class="comment-form" style="margin-bottom: 2rem;">
+        <form method="POST" action="/comment/{{ post.id }}">
+            <div class="form-group">
+                <textarea id="content" name="content" required placeholder="Share your thoughts..."></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-top: 0.75rem;">
+                <button type="submit" class="btn btn-secondary">Post Comment</button>
+            </div>
+        </form>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 2rem; background-color: var(--bg-secondary); border-radius: var(--radius-lg); border: 1px solid var(--border-secondary); margin-bottom: 2rem;">
+        <p style="color: var(--text-secondary); margin-bottom: 1rem;">Join the discussion</p>
+        <a href="/login" class="btn btn-secondary">Sign in to comment</a>
+    </div>
+    {% endif %}
+    
+    <div class="comments">
+        {% for comment in post.comments %}
+            {% if not comment.parent_id %}
+                {% include "comment.html" %}
+            {% endif %}
+        {% endfor %}
+        
+        {% if not post.comments %}
+        <div style="text-align: center; padding: 3rem 1rem; color: var(--text-tertiary);">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 1rem;">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <p>No comments yet. Be the first to share your thoughts!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - OSSWire{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <div class="settings-header">
+        <h1>Account Settings</h1>
+        <p>Manage your profile and account preferences</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-error">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if success %}
+    <div class="alert alert-success">
+        {{ success }}
+    </div>
+    {% endif %}
+
+    <div class="settings-sections">
+        <!-- Profile Picture Section -->
+        <div class="settings-section">
+            <h2>Profile Picture</h2>
+            <div class="avatar-section">
+                <div class="current-avatar">
+                    {% if current_user.avatar_url %}
+                        <img src="{{ current_user.avatar_url }}" alt="{{ current_user.username }}" class="avatar-preview">
+                    {% else %}
+                        <div class="avatar-placeholder">
+                            {{ current_user.username[0].upper() }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="avatar-actions">
+                    <form action="/settings/avatar" method="post" enctype="multipart/form-data" class="avatar-form">
+                        <div class="file-input-wrapper">
+                            <input type="file" name="avatar" id="avatar-input" accept="image/*" class="file-input">
+                            <label for="avatar-input" class="file-label">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7,10 12,15 17,10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Upload New Picture
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload</button>
+                    </form>
+                    
+                    {% if current_user.avatar_url %}
+                    <form action="/settings/remove-avatar" method="post" class="remove-avatar-form">
+                        <button type="submit" class="btn btn-secondary">Remove Picture</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Username Section -->
+        <div class="settings-section">
+            <h2>Username</h2>
+            <form action="/settings/username" method="post" class="username-form">
+                <div class="form-group">
+                    <label for="new-username">New Username</label>
+                    <input type="text" id="new-username" name="new_username" value="{{ current_user.username }}" 
+                           minlength="3" maxlength="50" required class="form-input">
+                    <small>Username must be at least 3 characters long and unique.</small>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Username</button>
+            </form>
+        </div>
+
+        <!-- Account Info Section -->
+        <div class="settings-section">
+            <h2>Account Information</h2>
+            <div class="account-info">
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">{{ current_user.email }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Member since:</span>
+                    <span class="info-value">{{ current_user.created_at.strftime('%B %d, %Y') }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Last login:</span>
+                    <span class="info-value">
+                        {% if current_user.last_login %}
+                            {{ current_user.last_login.strftime('%B %d, %Y at %I:%M %p') }}
+                        {% else %}
+                            Never
+                        {% endif %}
+                    </span>
+                </div>
+                {% if current_user.oauth_provider %}
+                <div class="info-row">
+                    <span class="info-label">Connected account:</span>
+                    <span class="info-value">{{ current_user.oauth_provider|title }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.settings-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.settings-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.settings-header h1 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
+.settings-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    border: 1px solid;
+}
+
+.alert-error {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #dc2626;
+}
+
+.alert-success {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.3);
+    color: #16a34a;
+}
+
+.settings-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.settings-section {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.settings-section h2 {
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.avatar-section {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+}
+
+.current-avatar {
+    flex-shrink: 0;
+}
+
+.avatar-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--border-primary);
+}
+
+.avatar-placeholder {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: bold;
+    font-family: 'Major Mono Display', monospace;
+    border: 3px solid var(--border-primary);
+}
+
+.avatar-actions {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.file-input-wrapper {
+    position: relative;
+}
+
+.file-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.file-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.file-label:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-primary);
+}
+
+.avatar-form, .remove-avatar-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.username-form {
+    max-width: 400px;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--text-tertiary);
+    font-size: 0.875rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: var(--accent-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--accent-secondary);
+}
+
+.btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-primary);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-quaternary);
+}
+
+.account-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-secondary);
+}
+
+.info-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.info-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .settings-container {
+        padding: 1rem;
+    }
+    
+    .avatar-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .avatar-actions {
+        width: 100%;
+    }
+    
+    .avatar-form, .remove-avatar-form {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File input preview
+    const fileInput = document.getElementById('avatar-input');
+    const avatarPreview = document.querySelector('.avatar-preview');
+    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (avatarPreview) {
+                    avatarPreview.src = e.target.result;
+                } else if (avatarPlaceholder) {
+                    // Replace placeholder with preview
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = '{{ current_user.username }}';
+                    img.className = 'avatar-preview';
+                    avatarPlaceholder.parentNode.replaceChild(img, avatarPlaceholder);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>
+{% endblock %} 

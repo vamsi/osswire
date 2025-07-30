@@ -1,0 +1,59 @@
+<div class="comment" id="comment-{{ comment.id }}">
+    <div class="comment-meta">
+        {{ comment.author.username }} • {{ comment.created_at.strftime('%Y-%m-%d %H:%M') }} • {{ comment.points }} points
+    </div>
+    
+    <div class="comment-content">
+        {{ comment.content|safe }}
+    </div>
+    
+    <div class="comment-actions">
+        {% if current_user %}
+            <div class="vote-buttons">
+                <form method="POST" action="/vote/comment/{{ comment.id }}" style="display: inline;">
+                    <input type="hidden" name="vote_type" value="1">
+                    <button type="submit" class="vote-btn">▲</button>
+                </form>
+                <form method="POST" action="/vote/comment/{{ comment.id }}" style="display: inline;">
+                    <input type="hidden" name="vote_type" value="-1">
+                    <button type="submit" class="vote-btn">▼</button>
+                </form>
+            </div>
+            
+            <button onclick="toggleReplyForm('{{ comment.id }}')" class="btn btn-secondary btn-sm">Reply</button>
+        {% endif %}
+    </div>
+    
+    {% if current_user %}
+    <div id="reply-form-{{ comment.id }}" class="reply-form" style="display: none;">
+        <form method="POST" action="/comment/{{ post.id }}">
+            <input type="hidden" name="parent_id" value="{{ comment.id }}">
+            <div class="form-group">
+                <label for="content-{{ comment.id }}">Reply</label>
+                <textarea id="content-{{ comment.id }}" name="content" required placeholder="Write your reply..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-sm">Post Reply</button>
+        </form>
+    </div>
+    {% endif %}
+    
+    {% if comment.replies %}
+    <div class="comment-tree">
+        {% for reply in comment.replies %}
+            {% set comment = reply %}
+            {% include "comment.html" %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleReplyForm(commentId) {
+    const form = document.getElementById('reply-form-' + commentId);
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+    } else {
+        form.style.display = 'none';
+    }
+}
+</script> 
